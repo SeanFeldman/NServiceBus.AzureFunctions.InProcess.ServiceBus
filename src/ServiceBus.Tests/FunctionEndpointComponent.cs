@@ -80,7 +80,7 @@
                         {
                             scenarioContext.FailedMessages.AddOrUpdate(
                                 Name,
-                                new[] { failedMessage },
+                                    new[] {failedMessage},
                                 (_, fm) =>
                                 {
                                     var messages = fm.ToList();
