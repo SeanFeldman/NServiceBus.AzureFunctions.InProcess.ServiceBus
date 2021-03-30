@@ -2,8 +2,9 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Functions.Worker;
     using Microsoft.Azure.ServiceBus;
-    using Microsoft.Azure.WebJobs;
+
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -15,68 +16,68 @@
         /// <summary>
         /// Processes a message received from an AzureServiceBus trigger using the NServiceBus message pipeline.
         /// </summary>
-        Task Process(Message message, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Process(Message message, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Sends the provided message.
         /// </summary>
-        Task Send(object message, SendOptions options, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Send(object message, SendOptions options, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Sends the provided message.
         /// </summary>
-        Task Send(object message, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Send(object message, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Instantiates a message of type T and sends it.
         /// </summary>
-        Task Send<T>(Action<T> messageConstructor, SendOptions options, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Send<T>(Action<T> messageConstructor, SendOptions options, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Instantiates a message of type T and sends it.
         /// </summary>
-        Task Send<T>(Action<T> messageConstructor, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Send<T>(Action<T> messageConstructor, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Publish the message to subscribers.
         /// </summary>
-        Task Publish(object message, PublishOptions options, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Publish(object message, PublishOptions options, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Instantiates a message of type T and publishes it.
         /// </summary>
-        Task Publish<T>(Action<T> messageConstructor, PublishOptions options, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Publish<T>(Action<T> messageConstructor, PublishOptions options, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Instantiates a message of type T and publishes it.
         /// </summary>
-        Task Publish(object message, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Publish(object message, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Instantiates a message of type T and publishes it.
         /// </summary>
-        Task Publish<T>(Action<T> messageConstructor, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Publish<T>(Action<T> messageConstructor, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Subscribes to receive published messages of the specified type.
         /// This method is only necessary if you turned off auto-subscribe.
         /// </summary>
-        Task Subscribe(Type eventType, SubscribeOptions options, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Subscribe(Type eventType, SubscribeOptions options, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Subscribes to receive published messages of the specified type.
         /// This method is only necessary if you turned off auto-subscribe.
         /// </summary>
-        Task Subscribe(Type eventType, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Subscribe(Type eventType, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Unsubscribes to receive published messages of the specified type.
         /// </summary>
-        Task Unsubscribe(Type eventType, UnsubscribeOptions options, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Unsubscribe(Type eventType, UnsubscribeOptions options, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Unsubscribes to receive published messages of the specified type.
         /// </summary>
-        Task Unsubscribe(Type eventType, ExecutionContext executionContext, ILogger functionsLogger = null);
+        Task Unsubscribe(Type eventType, FunctionContext functionContext, ILogger functionsLogger = null);
     }
 }

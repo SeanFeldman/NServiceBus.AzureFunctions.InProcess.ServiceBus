@@ -1,18 +1,15 @@
 ﻿namespace NServiceBus
 {
     using System;
-    using System.IO;
-    using System.Reflection;
-    using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
     using AzureFunctions.InProcess.ServiceBus;
     using Extensibility;
     using Logging;
+    using Microsoft.Azure.Functions.Worker;
     using Microsoft.Azure.ServiceBus;
     using Microsoft.Extensions.Logging;
     using Transport;
-    using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
     /// <summary>
     /// An NServiceBus endpoint hosted in Azure Function which does not receive messages automatically but only handles
@@ -31,12 +28,16 @@
         /// <summary>
         /// Processes a message received from an AzureServiceBus trigger using the NServiceBus message pipeline.
         /// </summary>
-        public async Task Process(Message message, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Process(Message message, FunctionContext functionContext, ILogger functionsLogger = null)
         {
-            FunctionsLoggerFactory.Instance.SetCurrentLogger(functionsLogger);
+            // TODO: replace Message with primitive types: byte[] for body, headers, and message ID
+
+            // TODO: replace logger with logger from the FunctionsContext + callername
+
+            FunctionsLoggerFactory.Instance.SetCurrentLogger(functionsLogger ?? functionContext.GetLogger<FunctionEndpoint>());
 
             var messageContext = CreateMessageContext(message);
-            var functionExecutionContext = new FunctionExecutionContext(executionContext, functionsLogger);
+            var functionExecutionContext = new FunctionExecutionContext(functionContext, functionsLogger);
 
             await InitializeEndpointIfNecessary(functionExecutionContext,
                 messageContext.ReceiveCancellationTokenSource.Token).ConfigureAwait(false);
@@ -81,9 +82,9 @@
         /// <summary>
         /// Allows to forcefully initialize the endpoint if it hasn't been initialized yet.
         /// </summary>
-        /// <param name="executionContext">The execution context.</param>
+        /// <param name="functionExecutionContext">The execution context.</param>
         /// <param name="token">The cancellation token or default cancellation token.</param>
-        async Task InitializeEndpointIfNecessary(FunctionExecutionContext executionContext, CancellationToken token = default)
+        async Task InitializeEndpointIfNecessary(FunctionExecutionContext functionExecutionContext, CancellationToken token = default)
         {
             if (pipeline == null)
             {
@@ -105,7 +106,7 @@
         }
 
         /// <inheritdoc />
-        public async Task Send(object message, SendOptions options, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Send(object message, SendOptions options, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -113,13 +114,13 @@
         }
 
         /// <inheritdoc />
-        public Task Send(object message, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public Task Send(object message, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             return Send(message, new SendOptions(), executionContext, functionsLogger);
         }
 
         /// <inheritdoc />
-        public async Task Send<T>(Action<T> messageConstructor, SendOptions options, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Send<T>(Action<T> messageConstructor, SendOptions options, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -127,13 +128,13 @@
         }
 
         /// <inheritdoc />
-        public Task Send<T>(Action<T> messageConstructor, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public Task Send<T>(Action<T> messageConstructor, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             return Send(messageConstructor, new SendOptions(), executionContext, functionsLogger);
         }
 
         /// <inheritdoc />
-        public async Task Publish(object message, PublishOptions options, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Publish(object message, PublishOptions options, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -141,7 +142,7 @@
         }
 
         /// <inheritdoc />
-        public async Task Publish<T>(Action<T> messageConstructor, PublishOptions options, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Publish<T>(Action<T> messageConstructor, PublishOptions options, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -149,7 +150,7 @@
         }
 
         /// <inheritdoc />
-        public async Task Publish(object message, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Publish(object message, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -157,7 +158,7 @@
         }
 
         /// <inheritdoc />
-        public async Task Publish<T>(Action<T> messageConstructor, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Publish<T>(Action<T> messageConstructor, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -165,7 +166,7 @@
         }
 
         /// <inheritdoc />
-        public async Task Subscribe(Type eventType, SubscribeOptions options, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Subscribe(Type eventType, SubscribeOptions options, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -173,7 +174,7 @@
         }
 
         /// <inheritdoc />
-        public async Task Subscribe(Type eventType, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Subscribe(Type eventType, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -181,7 +182,7 @@
         }
 
         /// <inheritdoc />
-        public async Task Unsubscribe(Type eventType, UnsubscribeOptions options, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Unsubscribe(Type eventType, UnsubscribeOptions options, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
@@ -189,14 +190,14 @@
         }
 
         /// <inheritdoc />
-        public async Task Unsubscribe(Type eventType, ExecutionContext executionContext, ILogger functionsLogger = null)
+        public async Task Unsubscribe(Type eventType, FunctionContext executionContext, ILogger functionsLogger = null)
         {
             await InitializeEndpointUsedOutsideHandlerIfNecessary(executionContext, functionsLogger).ConfigureAwait(false);
 
             await endpoint.Unsubscribe(eventType).ConfigureAwait(false);
         }
 
-        async Task InitializeEndpointUsedOutsideHandlerIfNecessary(ExecutionContext executionContext, ILogger functionsLogger)
+        async Task InitializeEndpointUsedOutsideHandlerIfNecessary(FunctionContext executionContext, ILogger functionsLogger)
         {
             FunctionsLoggerFactory.Instance.SetCurrentLogger(functionsLogger);
 

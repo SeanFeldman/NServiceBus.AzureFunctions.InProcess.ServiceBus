@@ -3,7 +3,7 @@ namespace NServiceBus.AzureFunctions.InProcess.ServiceBus
     using System;
     using System.Diagnostics;
     using System.Reflection;
-    using Microsoft.Azure.WebJobs;
+    using Microsoft.Azure.Functions.Worker;
 
     static class TriggerDiscoverer
     {
@@ -16,7 +16,7 @@ namespace NServiceBus.AzureFunctions.InProcess.ServiceBus
             foreach (var stackFrame in frames)
             {
                 var method = stackFrame.GetMethod();
-                var functionAttribute = method.GetCustomAttribute<FunctionNameAttribute>(false);
+                var functionAttribute = method.GetCustomAttribute<FunctionAttribute>(false);
                 if (functionAttribute != null)
                 {
                     foreach (var parameter in method.GetParameters())

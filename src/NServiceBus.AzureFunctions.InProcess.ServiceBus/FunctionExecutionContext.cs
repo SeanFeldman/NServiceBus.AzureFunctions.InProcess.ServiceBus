@@ -1,6 +1,6 @@
 namespace NServiceBus
 {
-    using Microsoft.Azure.WebJobs;
+    using Microsoft.Azure.Functions.Worker;
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -11,16 +11,16 @@ namespace NServiceBus
         /// <summary>
         /// Creates a new <see cref="FunctionExecutionContext"/>.
         /// </summary>
-        public FunctionExecutionContext(ExecutionContext executionContext, ILogger logger)
+        public FunctionExecutionContext(FunctionContext functionContext, ILogger logger)
         {
             Logger = logger;
-            ExecutionContext = executionContext;
+            FunctionContext = functionContext;
         }
 
         /// <summary>
-        /// The <see cref="ExecutionContext"/> associated with the current function invocation.
+        /// The <see cref="FunctionContext"/> associated with the current function invocation.
         /// </summary>
-        public ExecutionContext ExecutionContext { get; }
+        public FunctionContext FunctionContext { get; }
 
         /// <summary>
         /// The <see cref="ILogger"/> associated with the current function invocation.

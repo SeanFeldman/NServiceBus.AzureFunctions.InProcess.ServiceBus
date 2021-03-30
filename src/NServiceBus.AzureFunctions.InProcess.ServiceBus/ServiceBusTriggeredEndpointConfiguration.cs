@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using AzureFunctions.InProcess.ServiceBus;
     using Logging;
-    using Microsoft.Azure.WebJobs;
+    using Microsoft.Azure.Functions.Worker;
     using Serialization;
     using Transport;
 
@@ -47,8 +47,7 @@
 
             Transport = UseTransport<AzureServiceBusTransport>();
 
-            var connectionString =
-                Environment.GetEnvironmentVariable(connectionStringName ?? DefaultServiceBusConnectionName);
+            var connectionString = Environment.GetEnvironmentVariable(connectionStringName ?? DefaultServiceBusConnectionName);
             Transport.ConnectionString(connectionString);
 
             var recoverability = AdvancedConfiguration.Recoverability();
@@ -128,6 +127,6 @@
         }
 
         readonly ServerlessRecoverabilityPolicy recoverabilityPolicy = new ServerlessRecoverabilityPolicy();
-        internal const string DefaultServiceBusConnectionName = "AzureWebJobsServiceBus";
+        internal const string DefaultServiceBusConnectionName = "ServiceBusConnection";
     }
 }
