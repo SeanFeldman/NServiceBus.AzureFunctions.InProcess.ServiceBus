@@ -2,43 +2,58 @@
 {
     using System;
     using System.Collections.Generic;
-    using Microsoft.Azure.ServiceBus;
+    using Microsoft.Azure.Functions.Worker;
 
     static class MessageExtensions
     {
-        public static Dictionary<string, string> GetHeaders(this Message message)
+        public static Dictionary<string, string> GetHeaders(this FunctionContext functionContext)
         {
-            var headers = new Dictionary<string, string>(message.UserProperties.Count);
+            var headers = new Dictionary<string, string>();
 
-            foreach (var kvp in message.UserProperties)
+            if (functionContext.BindingContext.BindingData.TryGetValue("UserProperties", out var customProperties) && customProperties != null)
             {
-                headers[kvp.Key] = kvp.Value?.ToString();
+                var customHeaders = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(customProperties.ToString() ?? throw new InvalidOperationException());
+
+                if (customHeaders != null)
+                {
+                    foreach ((string key, string value) in customHeaders)
+                    {
+                        headers[key] = value;
+                    }
+                }
             }
 
             headers.Remove("NServiceBus.Transport.Encoding");
 
-            if (!string.IsNullOrWhiteSpace(message.ReplyTo))
+            if (functionContext.BindingContext.BindingData.ContainsKey("ReplyTo"))
             {
-                headers[Headers.ReplyToAddress] = message.ReplyTo;
+                headers[Headers.ReplyToAddress] = functionContext.BindingContext.BindingData["ReplyTo"]?.ToString();
             }
 
-            if (!string.IsNullOrWhiteSpace(message.CorrelationId))
+            if (functionContext.BindingContext.BindingData.ContainsKey("CorrelationId"))
             {
-                headers[Headers.CorrelationId] = message.CorrelationId;
+                headers[Headers.ReplyToAddress] = functionContext.BindingContext.BindingData["CorrelationId"]?.ToString();
             }
 
             return headers;
         }
 
-        public static string GetMessageId(this Message message)
+        public static string GetMessageId(this FunctionContext functionContext)
         {
-            if (string.IsNullOrEmpty(message.MessageId))
+            if (functionContext.BindingContext.BindingData.TryGetValue("MessageId", out var messageId) == false || messageId == null)
             {
-                // assume native message w/o message ID
+                // assume native functionContext w/o functionContext ID
                 return Guid.NewGuid().ToString("N");
             }
 
-            return message.MessageId;
+            return messageId.ToString();
+        }
+
+        public static int GetDeliveryCount(this FunctionContext functionContext)
+        {
+            int.TryParse(functionContext.BindingContext.BindingData["DeliveryCount"] as string, out var deliveryCount);
+
+            return deliveryCount;
         }
     }
 }

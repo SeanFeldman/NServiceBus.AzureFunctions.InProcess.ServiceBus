@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using Microsoft.Azure.Functions.Worker;
-    using Microsoft.Azure.ServiceBus;
 
     using Microsoft.Extensions.Logging;
 
@@ -16,7 +15,7 @@
         /// <summary>
         /// Processes a message received from an AzureServiceBus trigger using the NServiceBus message pipeline.
         /// </summary>
-        Task Process(Message message, FunctionContext functionContext, ILogger functionsLogger = null);
+        Task Process(byte[] body, FunctionContext functionContext, ILogger functionsLogger = null);
 
         /// <summary>
         /// Sends the provided message.

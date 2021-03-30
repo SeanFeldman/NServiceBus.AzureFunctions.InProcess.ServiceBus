@@ -7,7 +7,6 @@
     using Extensibility;
     using Logging;
     using Microsoft.Azure.Functions.Worker;
-    using Microsoft.Azure.ServiceBus;
     using Microsoft.Extensions.Logging;
     using Transport;
 
@@ -28,15 +27,13 @@
         /// <summary>
         /// Processes a message received from an AzureServiceBus trigger using the NServiceBus message pipeline.
         /// </summary>
-        public async Task Process(Message message, FunctionContext functionContext, ILogger functionsLogger = null)
+        public async Task Process(byte[] body, FunctionContext functionContext, ILogger functionsLogger = null)
         {
-            // TODO: replace Message with primitive types: byte[] for body, headers, and message ID
-
             // TODO: replace logger with logger from the FunctionsContext + callername
 
             FunctionsLoggerFactory.Instance.SetCurrentLogger(functionsLogger ?? functionContext.GetLogger<FunctionEndpoint>());
 
-            var messageContext = CreateMessageContext(message);
+            var messageContext = CreateMessageContext(body, functionContext);
             var functionExecutionContext = new FunctionExecutionContext(functionContext, functionsLogger);
 
             await InitializeEndpointIfNecessary(functionExecutionContext,
@@ -50,11 +47,11 @@
             {
                 var errorContext = new ErrorContext(
                     exception,
-                    message.GetHeaders(),
+                    functionContext.GetHeaders(),
                     messageContext.MessageId,
                     messageContext.Body,
                     new TransportTransaction(),
-                    message.SystemProperties.DeliveryCount);
+                    functionContext.GetDeliveryCount());
 
                 var errorHandleResult = await pipeline.PushFailedMessage(errorContext).ConfigureAwait(false);
 
@@ -67,16 +64,14 @@
                 throw;
             }
 
-            MessageContext CreateMessageContext(Message originalMessage)
-            {
-                return new MessageContext(
-                    originalMessage.GetMessageId(),
-                    originalMessage.GetHeaders(),
-                    originalMessage.Body,
+            MessageContext CreateMessageContext(byte[] body, FunctionContext functionContext) =>
+                new MessageContext(
+                    functionContext.GetMessageId(),
+                    functionContext.GetHeaders(),
+                    body,
                     new TransportTransaction(),
                     new CancellationTokenSource(),
                     new ContextBag());
-            }
         }
 
         /// <summary>
